@@ -1,0 +1,5 @@
+vpn_env/
+__pycache__/
+auth/__pycache__/
+routes/__pycache__/
+utils/__pycache__/

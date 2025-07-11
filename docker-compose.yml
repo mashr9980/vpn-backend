@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: vpn_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: vpn_password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+
+  vpn_backend:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://postgres:123@postgres:5432/vpn_db
+      - SECRET_KEY=your-super-secret-key-change-this
+    volumes:
+      - /etc/wireguard:/etc/wireguard
+      - /usr/bin/wg:/usr/bin/wg
+      - /usr/bin/wg-quick:/usr/bin/wg-quick
+    depends_on:
+      - postgres
+      - redis
+    restart: unless-stopped
+    privileged: true
+    network_mode: host
+
+volumes:
+  postgres_data:
