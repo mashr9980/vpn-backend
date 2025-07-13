@@ -47,23 +47,6 @@ class UserResponse(UserBase):
     class Config:
         from_attributes = True
 
-class VPNStats(BaseModel):
-    active_configs: int = 0
-    total_sessions: int = 0
-    total_bytes_sent: int = 0
-    total_bytes_received: int = 0
-    total_data_used: int = 0
-    last_connection: Optional[str] = None
-
-class UserMeResponse(BaseModel):
-    id: int
-    username: str
-    email: str
-    is_active: bool
-    is_admin: bool
-    created_at: str
-    vpn_stats: VPNStats
-
 class UserLogin(BaseModel):
     username: str = Field(..., min_length=3)
     password: str = Field(..., min_length=6)
@@ -75,6 +58,29 @@ class AuthResponse(BaseResponse):
         "token_type": "bearer",
         "expires_in": 3600
     })
+
+class VPNTunnelRequest(BaseModel):
+    name: Optional[str] = Field(None, description="Optional custom name for the tunnel")
+    auto_cleanup: bool = Field(True, description="Automatically cleanup tunnel when inactive")
+    persistent: bool = Field(False, description="Keep tunnel persistent across sessions")
+
+class TunnelInfo(BaseModel):
+    client_id: str = Field(..., description="Unique client ID from wg-easy")
+    client_name: str = Field(..., description="Client name")
+    address: str = Field(..., description="Allocated IP address")
+    public_key: str = Field(..., description="WireGuard public key")
+    enabled: bool = Field(..., description="Whether the tunnel is enabled")
+    created_at: str = Field(..., description="Creation timestamp")
+    updated_at: Optional[str] = Field(None, description="Last update timestamp")
+
+class DynamicTunnelData(BaseModel):
+    tunnel_exists: bool = Field(..., description="Whether tunnel exists")
+    tunnel_info: Optional[TunnelInfo] = Field(None, description="Tunnel information")
+    config_content: Optional[str] = Field(None, description="WireGuard configuration content")
+    qr_code: Optional[str] = Field(None, description="QR code for mobile import")
+
+class DynamicTunnelResponse(BaseResponse):
+    data: Optional[DynamicTunnelData] = None
 
 class ServerBase(BaseModel):
     name: str = Field(..., min_length=3, max_length=50)
@@ -106,19 +112,6 @@ class ServerResponse(ServerBase):
     class Config:
         from_attributes = True
 
-class ServerListResponse(BaseResponse):
-    data: Optional[Dict[str, List[ServerResponse]]] = Field(default_factory=lambda: {"servers": []})
-
-class ServerHealthStatus(BaseModel):
-    server_id: int
-    is_healthy: bool
-    response_time: float
-    wireguard_status: bool
-    peer_count: int
-    last_check: float
-    error_message: Optional[str] = None
-    panel_url: Optional[str] = None
-
 class VPNConfigCreate(BaseModel):
     server_id: int = Field(..., gt=0)
 
@@ -139,19 +132,6 @@ class VPNConfigFile(BaseModel):
     qr_code: str
     server_info: Dict[str, Any]
     connection_info: Dict[str, Any]
-
-class VPNConnectionStatus(BaseModel):
-    config_id: int
-    is_connected: bool
-    allocated_ip: str
-    bytes_sent: int = 0
-    bytes_received: int = 0
-    last_handshake: Optional[datetime] = None
-    endpoint: Optional[str] = None
-    connection_time: Optional[datetime] = None
-
-class VPNResponse(BaseResponse):
-    data: Optional[Dict[str, Any]] = None
 
 class UsageLogResponse(BaseModel):
     id: int
@@ -184,8 +164,8 @@ class ConnectionStatsResponse(BaseModel):
     today_connections: int
     server_stats: List[Dict[str, Any]] = []
 
-class AdminStatsResponse(BaseResponse):
-    data: Optional[ConnectionStatsResponse] = None
+class SuccessResponse(BaseResponse):
+    status: StatusEnum = StatusEnum.success
 
 class ErrorDetail(BaseModel):
     field: Optional[str] = None
@@ -195,9 +175,6 @@ class ErrorDetail(BaseModel):
 class ValidationErrorResponse(BaseResponse):
     status: StatusEnum = StatusEnum.error
     errors: List[ErrorDetail] = []
-    
-class SuccessResponse(BaseResponse):
-    status: StatusEnum = StatusEnum.success
 
 class PaginationParams(BaseModel):
     page: int = Field(default=1, ge=1)

@@ -7,7 +7,7 @@ from models import User
 from auth.password import hash_password
 from config import settings
 
-def create_admin_user(username="admin", email="admin@vpn.local", password="admin123"):
+def create_admin_user(username="admin", email="admin@vpn.com", password="admin123"):
     try:
         engine = create_engine(settings.DATABASE_URL)
         SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
