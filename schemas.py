@@ -16,7 +16,7 @@ class BaseResponse(BaseModel):
     timestamp: datetime = Field(default_factory=datetime.utcnow)
 
 class UserBase(BaseModel):
-    username: str = Field(..., min_length=3, max_length=20, regex="^[a-zA-Z0-9_]+$")
+    username: str = Field(..., min_length=3, max_length=20, pattern="^[a-zA-Z0-9_]+$")
     email: EmailStr
 
     @validator('username')
@@ -47,6 +47,23 @@ class UserResponse(UserBase):
     class Config:
         from_attributes = True
 
+class VPNStats(BaseModel):
+    active_configs: int = 0
+    total_sessions: int = 0
+    total_bytes_sent: int = 0
+    total_bytes_received: int = 0
+    total_data_used: int = 0
+    last_connection: Optional[str] = None
+
+class UserMeResponse(BaseModel):
+    id: int
+    username: str
+    email: str
+    is_active: bool
+    is_admin: bool
+    created_at: str
+    vpn_stats: VPNStats
+
 class UserLogin(BaseModel):
     username: str = Field(..., min_length=3)
     password: str = Field(..., min_length=6)
@@ -62,14 +79,14 @@ class AuthResponse(BaseResponse):
 class ServerBase(BaseModel):
     name: str = Field(..., min_length=3, max_length=50)
     location: str = Field(..., min_length=2, max_length=50)
-    endpoint: str = Field(..., regex=r'^(\d{1,3}\.){3}\d{1,3}$|^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$')
+    endpoint: str = Field(..., pattern=r'^(\d{1,3}\.){3}\d{1,3}$|^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$')
     port: int = Field(..., ge=1, le=65535)
 
 class ServerCreate(ServerBase):
     pass
 
 class ServerCreateFromPanel(BaseModel):
-    panel_url: str = Field(..., regex=r'^https?://.+')
+    panel_url: str = Field(..., pattern=r'^https?://.+')
     name: str = Field(..., min_length=3, max_length=50)
     password: str = Field(..., min_length=1)
     location: str = Field(default="Unknown Location", max_length=50)
