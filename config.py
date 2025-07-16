@@ -15,9 +15,9 @@ class Settings(BaseSettings):
         return f"postgresql://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_SERVER}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
 
     # Authentication
-    SECRET_KEY: str = os.getenv("SECRET_KEY", "your-secret-key-change-this-in-production")
+    SECRET_KEY: str = os.getenv("SECRET_KEY", "asassa")
     ALGORITHM: str = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "30"))
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "300"))
 
     # WG-Easy Configuration
     WG_EASY_PANEL_URL: str = os.getenv("WG_EASY_PANEL_URL", "http://74.208.112.39:51821")
